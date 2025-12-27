@@ -42,10 +42,7 @@ const OnlineServices = () => {
     setLoading(true);
 
     try {
-      await temporaryResidenceService.create({
-        ...formData,
-        type: formData.type
-      });
+      await temporaryResidenceService.create(formData);
       
       setSuccess(
         formData.type === 'temporary_absence'

@@ -32,11 +32,14 @@ const ResidentHome = () => {
   const loadHouseholdInfo = async () => {
     try {
       // Try to get household information for the user
-      // This would need a backend endpoint to get household by user
+      // Note: This endpoint needs to be implemented in the backend
+      // For now, we'll gracefully handle the error
       const response = await api.get('/population/my-household');
       setHouseholdInfo(response.data);
     } catch (error) {
-      console.error('Error loading household info:', error);
+      // Endpoint not yet implemented, show placeholder
+      console.log('Household info endpoint not available yet');
+      setHouseholdInfo(null);
     } finally {
       setLoading(false);
     }

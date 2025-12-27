@@ -31,6 +31,16 @@ import { useAuth } from '../context/AuthContext';
 
 const drawerWidth = 240;
 
+const getRoleLabel = (role) => {
+  const labels = {
+    admin: 'Quản trị viên',
+    team_leader: 'Tổ trưởng',
+    deputy_leader: 'Phó tổ trưởng',
+    staff: 'Cán bộ'
+  };
+  return labels[role] || role;
+};
+
 const AdminLayout = () => {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -129,9 +139,7 @@ const AdminLayout = () => {
           </Typography>
           <Box display="flex" alignItems="center">
             <Typography variant="body1" sx={{ mr: 2 }}>
-              {user?.fullName} ({user?.role === 'admin' ? 'Quản trị viên' : 
-                user?.role === 'team_leader' ? 'Tổ trưởng' : 
-                user?.role === 'deputy_leader' ? 'Phó tổ trưởng' : 'Cán bộ'})
+              {user?.fullName} ({getRoleLabel(user?.role)})
             </Typography>
             <IconButton onClick={handleMenu} color="inherit">
               <AccountCircle />
