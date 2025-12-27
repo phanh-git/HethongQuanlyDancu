@@ -4,6 +4,7 @@ const Household = require('./Household');
 const Population = require('./Population');
 const TemporaryResidence = require('./TemporaryResidence');
 const Complaint = require('./Complaint');
+const ComplaintCategory = require('./ComplaintCategory');
 
 // Define associations
 
@@ -34,6 +35,10 @@ Complaint.belongsTo(User, { foreignKey: 'createdById', as: 'creator' });
 Complaint.belongsTo(User, { foreignKey: 'assignedToId', as: 'assignedTo' });
 Complaint.belongsTo(User, { foreignKey: 'resolvedById', as: 'resolvedBy' });
 Complaint.belongsTo(Complaint, { foreignKey: 'mergedIntoId', as: 'mergedInto' });
+Complaint.belongsTo(ComplaintCategory, { foreignKey: 'categoryId', as: 'category' });
+
+// ComplaintCategory associations
+ComplaintCategory.hasMany(Complaint, { foreignKey: 'categoryId', as: 'complaints' });
 
 module.exports = {
   sequelize,
@@ -41,5 +46,6 @@ module.exports = {
   Household,
   Population,
   TemporaryResidence,
-  Complaint
+  Complaint,
+  ComplaintCategory
 };

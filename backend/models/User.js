@@ -4,8 +4,8 @@ const { sequelize } = require('../config/database');
 
 const User = sequelize.define('User', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
     primaryKey: true
   },
   username: {
@@ -21,6 +21,18 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false
   },
+  citizenIdentificationCard: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: true,
+    validate: {
+      len: [9, 12]
+    }
+  },
+  dateOfBirth: {
+    type: DataTypes.DATEONLY,
+    allowNull: true
+  },
   email: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -33,8 +45,8 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING
   },
   role: {
-    type: DataTypes.ENUM('admin', 'team_leader', 'deputy_leader', 'staff'),
-    defaultValue: 'staff'
+    type: DataTypes.ENUM('admin', 'team_leader', 'deputy_leader', 'staff', 'citizen'),
+    defaultValue: 'citizen'
   },
   assignedArea: {
     type: DataTypes.JSONB,
