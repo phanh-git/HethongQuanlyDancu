@@ -1,92 +1,108 @@
 const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const { User, Population } = require('../models');
 const { Op } = require('sequelize');
+const bcrypt = require('bcryptjs');
 
-// Generate JWT token
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE
+// Helper: Tạo Token
+const generateToken = (id, role) => {
+  return jwt.sign({ id, role }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRE || '1d'
   });
 };
 
-// @desc    Register user
-// @route   POST /api/auth/register
-// @access  Public
-exports.register = async (req, res) => {
+// @desc    Register user (Dành cho người dân)
+const register = async (req, res) => {
   try {
-    const { username, password, fullName, email, phone, role, assignedArea, citizenIdentificationCard, dateOfBirth } = req.body;
+    const { username, password, fullName, email, phone, citizenIdentificationCard } = req.body;
 
-    // Check if user exists
+    // Kiểm tra CCCD có trong danh sách dân cư không
+    const citizen = await Population.findOne({ where: { idNumber: citizenIdentificationCard } });
+    if (!citizen) {
+      return res.status(400).json({ message: 'Số CCCD không tồn tại trong hệ thống dân cư.' });
+    }
+
+    // Check trùng
     const userExists = await User.findOne({ 
       where: { 
         [Op.or]: [
           { username }, 
           { email },
-          ...(citizenIdentificationCard ? [{ citizenIdentificationCard }] : [])
+          { citizenIdentificationCard }
         ] 
       } 
     });
+
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: 'Người dùng đã tồn tại (Username/Email/CCCD)' });
     }
 
-    // Create user (default role is citizen if not specified)
+    // Tạo user với role mặc định là resident
     const user = await User.create({
       username,
-      password,
+      password, // Password sẽ tự hash nếu bạn có hooks trong model
       fullName,
       email,
       phone,
-      role: role || 'citizen',
-      assignedArea,
-      citizenIdentificationCard,
-      dateOfBirth
+      role: 'resident',
+      citizenIdentificationCard
     });
 
     res.status(201).json({
-      id: user.id,
-      username: user.username,
-      fullName: user.fullName,
-      email: user.email,
-      role: user.role,
-      token: generateToken(user.id)
+      success: true,
+      token: generateToken(user.id, user.role)
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
+// @desc    Create staff account (Dành cho Admin)
+const createStaffAccount = async (req, res) => {
+  try {
+    const { username, password, role, fullName, email } = req.body;
+    
+    // Hash password thủ công nếu model không tự làm
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newStaff = await User.create({
+      username,
+      password: hashedPassword,
+      role, 
+      fullName,
+      email,
+      isActive: true
+    });
+
+    res.status(201).json({ message: "Tạo tài khoản cán bộ thành công", username: newStaff.username });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Login user
-// @route   POST /api/auth/login
-// @access  Public
-exports.login = async (req, res) => {
+const login = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Check for user
     const user = await User.findOne({ where: { username } });
     if (!user || !user.isActive) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Tài khoản không tồn tại hoặc đã bị khóa' });
     }
 
-    // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Thông tin đăng nhập không chính xác' });
     }
 
-    // Update last login
     user.lastLogin = new Date();
     await user.save();
 
     res.json({
       id: user.id,
       username: user.username,
-      fullName: user.fullName,
-      email: user.email,
       role: user.role,
-      assignedArea: user.assignedArea,
-      token: generateToken(user.id)
+      token: generateToken(user.id, user.role)
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -94,9 +110,7 @@ exports.login = async (req, res) => {
 };
 
 // @desc    Get current user
-// @route   GET /api/auth/me
-// @access  Private
-exports.getMe = async (req, res) => {
+const getMe = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
       attributes: { exclude: ['password'] }
@@ -105,4 +119,12 @@ exports.getMe = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+};
+
+// Export theo kiểu CommonJS
+module.exports = {
+  register,
+  login,
+  getMe,
+  createStaffAccount
 };

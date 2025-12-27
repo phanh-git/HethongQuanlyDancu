@@ -45,8 +45,8 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING
   },
   role: {
-    type: DataTypes.ENUM('admin', 'team_leader', 'deputy_leader', 'staff', 'citizen'),
-    defaultValue: 'citizen'
+    type: DataTypes.ENUM('admin', 'team_leader', 'deputy_leader', 'staff', 'resident'),
+    defaultValue: 'resident'
   },
   assignedArea: {
     type: DataTypes.JSONB,
