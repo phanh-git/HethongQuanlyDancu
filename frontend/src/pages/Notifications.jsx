@@ -11,10 +11,6 @@ import {
   Divider,
   Alert
 } from '@mui/material';
-import {
-  Info as InfoIcon,
-  Notifications as NotificationsIcon
-} from '@mui/material/Icon';
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([

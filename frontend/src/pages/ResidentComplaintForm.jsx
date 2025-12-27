@@ -14,7 +14,7 @@ import {
   Alert,
   Grid
 } from '@mui/material';
-import { Send as SendIcon } from '@mui/material/icons';
+import { Send as SendIcon } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { complaintService } from '../services';
 
