@@ -38,15 +38,16 @@ const Complaints = () => {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [statusUpdate, setStatusUpdate] = useState({ status: '', note: '', resolution: '' });
+  const [statusFilter, setStatusFilter] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
     loadComplaints();
-  }, []);
+  }, [statusFilter]);
 
   const loadComplaints = async () => {
     try {
-      const data = await complaintService.getAll({});
+      const data = await complaintService.getAll({ status: statusFilter });
       setComplaints(data.complaints);
     } catch (error) {
       console.error('Error loading complaints:', error);
@@ -106,7 +107,7 @@ const Complaints = () => {
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" sx={{ color: '#0066CC', fontWeight: 'bold' }}>
-          Quản lý Phản ánh & Kiến nghị
+          Tiếp nhận Phản ánh & Kiến nghị
         </Typography>
         <Box>
           {selectedComplaints.length > 0 && (
@@ -130,6 +131,23 @@ const Complaints = () => {
       </Box>
 
       <Paper sx={{ p: 3 }}>
+        <Box sx={{ mb: 3 }}>
+          <FormControl sx={{ minWidth: 200 }}>
+            <InputLabel>Lọc theo trạng thái</InputLabel>
+            <Select
+              value={statusFilter}
+              label="Lọc theo trạng thái"
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <MenuItem value="">Tất cả</MenuItem>
+              <MenuItem value="submitted">Đang chờ</MenuItem>
+              <MenuItem value="acknowledged">Đã tiếp nhận</MenuItem>
+              <MenuItem value="forwarded">Đã gửi lên cấp trên</MenuItem>
+              <MenuItem value="answered">Đã xử lý</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+        
         <TableContainer>
           <Table>
             <TableHead>

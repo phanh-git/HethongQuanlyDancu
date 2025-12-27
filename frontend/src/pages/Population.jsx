@@ -69,8 +69,8 @@ const Population = () => {
 
   const getResidenceStatusColor = (status) => {
     const colors = {
-      permanent: 'success',
-      temporary: 'info',
+      permanent: '#4CAF50', // Green
+      temporary: '#FFC107', // Yellow
       temporarily_absent: 'warning'
     };
     return colors[status] || 'default';
@@ -93,6 +93,23 @@ const Population = () => {
       </Box>
 
       <Paper sx={{ p: 3, mb: 3 }}>
+        <Box sx={{ mb: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          <Chip 
+            label="Thường trú" 
+            sx={{ bgcolor: '#4CAF50', color: 'white' }} 
+            size="small"
+          />
+          <Chip 
+            label="Tạm trú" 
+            sx={{ bgcolor: '#FFC107', color: 'black' }} 
+            size="small"
+          />
+          <Chip 
+            label="Tạm vắng" 
+            color="warning" 
+            size="small"
+          />
+        </Box>
         <Grid container spacing={2} sx={{ mb: 2 }}>
           <Grid item xs={12} md={6}>
             <TextField
@@ -156,42 +173,64 @@ const Population = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {population.map((person) => (
-                <TableRow key={person._id} hover>
-                  <TableCell>{person.fullName}</TableCell>
-                  <TableCell>
-                    {new Date(person.dateOfBirth).toLocaleDateString('vi-VN')}
-                  </TableCell>
-                  <TableCell>
-                    {person.gender === 'male' ? 'Nam' : person.gender === 'female' ? 'Nữ' : 'Khác'}
-                  </TableCell>
-                  <TableCell>{person.idNumber || 'N/A'}</TableCell>
-                  <TableCell>{person.household?.householdCode || 'N/A'}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={getResidenceStatusLabel(person.residenceStatus)}
-                      color={getResidenceStatusColor(person.residenceStatus)}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell align="center">
-                    <IconButton
-                      size="small"
-                      color="primary"
-                      onClick={() => navigate(`/population/${person._id}`)}
-                    >
-                      <Visibility />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      color="primary"
-                      onClick={() => navigate(`/population/${person._id}/edit`)}
-                    >
-                      <Edit />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {population.map((person) => {
+                const isDeceased = person.status === 'deceased';
+                const isMovedOut = person.status === 'moved_out';
+                const isInactive = isDeceased || isMovedOut;
+                
+                return (
+                  <TableRow 
+                    key={person._id} 
+                    hover
+                    sx={{
+                      opacity: isInactive ? 0.5 : 1,
+                      bgcolor: isInactive ? '#F5F5F5' : 'transparent'
+                    }}
+                  >
+                    <TableCell>
+                      {person.fullName}
+                      {isDeceased && <Chip label="Đã khai tử" color="error" size="small" sx={{ ml: 1 }} />}
+                      {isMovedOut && <Chip label="Đã chuyển đi" color="warning" size="small" sx={{ ml: 1 }} />}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(person.dateOfBirth).toLocaleDateString('vi-VN')}
+                    </TableCell>
+                    <TableCell>
+                      {person.gender === 'male' ? 'Nam' : person.gender === 'female' ? 'Nữ' : 'Khác'}
+                    </TableCell>
+                    <TableCell>{person.idNumber || 'N/A'}</TableCell>
+                    <TableCell>{person.household?.householdCode || 'N/A'}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={getResidenceStatusLabel(person.residenceStatus)}
+                        sx={{
+                          bgcolor: person.residenceStatus === 'permanent' ? '#4CAF50' : 
+                                   person.residenceStatus === 'temporary' ? '#FFC107' : undefined,
+                          color: person.residenceStatus === 'permanent' ? 'white' : 
+                                 person.residenceStatus === 'temporary' ? 'black' : undefined
+                        }}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        onClick={() => navigate(`/population/${person._id}`)}
+                      >
+                        <Visibility />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        onClick={() => navigate(`/population/${person._id}/edit`)}
+                      >
+                        <Edit />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
               {population.length === 0 && !loading && (
                 <TableRow>
                   <TableCell colSpan={7} align="center">

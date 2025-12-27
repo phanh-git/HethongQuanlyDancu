@@ -24,8 +24,14 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await login(credentials);
-      navigate('/');
+      const userData = await login(credentials);
+      
+      // Redirect based on user role
+      if (userData.role === 'admin' || userData.role === 'team_leader' || userData.role === 'deputy_leader' || userData.role === 'staff') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/home');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Đăng nhập thất bại');
     } finally {

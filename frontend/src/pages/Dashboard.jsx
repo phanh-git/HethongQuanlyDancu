@@ -145,6 +145,24 @@ const Dashboard = () => {
 
       {/* Charts */}
       <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom sx={{ color: '#0066CC' }}>
+              Thống kê nhân khẩu theo độ tuổi - Tổ dân phố 7
+            </Typography>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={ageData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="value" fill="#0066CC" name="Số người" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Paper>
+        </Grid>
+
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom sx={{ color: '#0066CC' }}>
