@@ -84,33 +84,22 @@ const Complaints = () => {
 
   const getStatusLabel = (status) => {
     const labels = {
-      received: 'Tiếp nhận',
-      in_progress: 'Đang xử lý',
-      resolved: 'Đã giải quyết',
-      rejected: 'Từ chối'
+      submitted: 'Đã phản ánh',
+      acknowledged: 'Đã tiếp nhận',
+      forwarded: 'Đã gửi lên cấp trên',
+      answered: 'Đã có câu trả lời'
     };
     return labels[status] || status;
   };
 
   const getStatusColor = (status) => {
     const colors = {
-      received: 'info',
-      in_progress: 'warning',
-      resolved: 'success',
-      rejected: 'error'
+      submitted: 'default',
+      acknowledged: 'info',
+      forwarded: 'warning',
+      answered: 'success'
     };
     return colors[status] || 'default';
-  };
-
-  const getCategoryLabel = (category) => {
-    const labels = {
-      environment: 'Môi trường',
-      security: 'An ninh',
-      infrastructure: 'Cơ sở hạ tầng',
-      social: 'Xã hội',
-      other: 'Khác'
-    };
-    return labels[category] || category;
   };
 
   return (
@@ -157,16 +146,16 @@ const Complaints = () => {
             </TableHead>
             <TableBody>
               {complaints.map((complaint) => (
-                <TableRow key={complaint._id} hover>
+                <TableRow key={complaint.id} hover>
                   <TableCell padding="checkbox">
                     <Checkbox
-                      checked={selectedComplaints.includes(complaint._id)}
+                      checked={selectedComplaints.includes(complaint.id)}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setSelectedComplaints([...selectedComplaints, complaint._id]);
+                          setSelectedComplaints([...selectedComplaints, complaint.id]);
                         } else {
                           setSelectedComplaints(
-                            selectedComplaints.filter((id) => id !== complaint._id)
+                            selectedComplaints.filter((id) => id !== complaint.id)
                           );
                         }
                       }}
@@ -174,12 +163,8 @@ const Complaints = () => {
                   </TableCell>
                   <TableCell>{complaint.complaintCode}</TableCell>
                   <TableCell>{complaint.title}</TableCell>
-                  <TableCell>{getCategoryLabel(complaint.category)}</TableCell>
-                  <TableCell>
-                    {complaint.submittedBy?.length > 1
-                      ? `${complaint.submittedBy[0]?.fullName} +${complaint.submittedBy.length - 1}`
-                      : complaint.submittedBy[0]?.fullName}
-                  </TableCell>
+                  <TableCell>{complaint.category?.name || 'N/A'}</TableCell>
+                  <TableCell>{complaint.submitterName}</TableCell>
                   <TableCell>
                     <Chip
                       label={getStatusLabel(complaint.status)}
@@ -194,7 +179,7 @@ const Complaints = () => {
                     <Button
                       size="small"
                       onClick={() => {
-                        setSelectedComplaint(complaint._id);
+                        setSelectedComplaint(complaint.id);
                         setStatusUpdate({ status: complaint.status, note: '', resolution: '' });
                         setStatusDialogOpen(true);
                       }}
@@ -243,10 +228,10 @@ const Complaints = () => {
                 setStatusUpdate({ ...statusUpdate, status: e.target.value })
               }
             >
-              <MenuItem value="received">Tiếp nhận</MenuItem>
-              <MenuItem value="in_progress">Đang xử lý</MenuItem>
-              <MenuItem value="resolved">Đã giải quyết</MenuItem>
-              <MenuItem value="rejected">Từ chối</MenuItem>
+              <MenuItem value="submitted">Đã phản ánh</MenuItem>
+              <MenuItem value="acknowledged">Đã tiếp nhận</MenuItem>
+              <MenuItem value="forwarded">Đã gửi lên cấp trên</MenuItem>
+              <MenuItem value="answered">Đã có câu trả lời</MenuItem>
             </Select>
           </FormControl>
           <TextField
@@ -258,7 +243,7 @@ const Complaints = () => {
             onChange={(e) => setStatusUpdate({ ...statusUpdate, note: e.target.value })}
             sx={{ mt: 2 }}
           />
-          {statusUpdate.status === 'resolved' && (
+          {statusUpdate.status === 'answered' && (
             <TextField
               fullWidth
               multiline

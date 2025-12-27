@@ -3,8 +3,8 @@ const { sequelize } = require('../config/database');
 
 const Population = sequelize.define('Population', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
     primaryKey: true
   },
   fullName: {
@@ -55,8 +55,8 @@ const Population = sequelize.define('Population', {
     type: DataTypes.ENUM('primary', 'secondary', 'high_school', 'college', 'university', 'postgraduate', 'other')
   },
   householdId: {
-    type: DataTypes.UUID,
-    allowNull: false,
+    type: DataTypes.INTEGER,
+    allowNull: true,
     references: {
       model: 'Households',
       key: 'id'
@@ -105,7 +105,7 @@ const Population = sequelize.define('Population', {
     type: DataTypes.TEXT
   },
   createdById: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     references: {
       model: 'Users',
       key: 'id'

@@ -3,21 +3,36 @@ const { sequelize } = require('../config/database');
 
 const Complaint = sequelize.define('Complaint', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
     primaryKey: true
   },
   complaintCode: {
     type: DataTypes.STRING,
     unique: true
   },
-  submittedBy: {
-    type: DataTypes.ARRAY(DataTypes.UUID),
-    defaultValue: []
-  },
-  category: {
-    type: DataTypes.ENUM('environment', 'security', 'infrastructure', 'social', 'other'),
+  submitterName: {
+    type: DataTypes.STRING,
     allowNull: false
+  },
+  submitterPhone: {
+    type: DataTypes.STRING
+  },
+  submitterAddress: {
+    type: DataTypes.STRING
+  },
+  submissionDate: {
+    type: DataTypes.DATEONLY,
+    allowNull: false,
+    defaultValue: DataTypes.NOW
+  },
+  categoryId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'ComplaintCategories',
+      key: 'id'
+    }
   },
   title: {
     type: DataTypes.STRING,
@@ -28,15 +43,15 @@ const Complaint = sequelize.define('Complaint', {
     allowNull: false
   },
   status: {
-    type: DataTypes.ENUM('received', 'in_progress', 'resolved', 'rejected'),
-    defaultValue: 'received'
+    type: DataTypes.ENUM('submitted', 'acknowledged', 'forwarded', 'answered'),
+    defaultValue: 'submitted'
   },
   priority: {
     type: DataTypes.ENUM('low', 'medium', 'high', 'urgent'),
     defaultValue: 'medium'
   },
   mergedFrom: {
-    type: DataTypes.ARRAY(DataTypes.UUID),
+    type: DataTypes.ARRAY(DataTypes.INTEGER),
     defaultValue: []
   },
   isMerged: {
@@ -44,7 +59,7 @@ const Complaint = sequelize.define('Complaint', {
     defaultValue: false
   },
   mergedIntoId: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     references: {
       model: 'Complaints',
       key: 'id'
@@ -61,14 +76,14 @@ const Complaint = sequelize.define('Complaint', {
     type: DataTypes.DATE
   },
   resolvedById: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     references: {
       model: 'Users',
       key: 'id'
     }
   },
   assignedToId: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     references: {
       model: 'Users',
       key: 'id'
@@ -79,7 +94,7 @@ const Complaint = sequelize.define('Complaint', {
     defaultValue: []
   },
   createdById: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     references: {
       model: 'Users',
       key: 'id'

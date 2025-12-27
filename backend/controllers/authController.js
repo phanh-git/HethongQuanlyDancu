@@ -11,30 +11,36 @@ const generateToken = (id) => {
 
 // @desc    Register user
 // @route   POST /api/auth/register
-// @access  Public (should be protected in production)
+// @access  Public
 exports.register = async (req, res) => {
   try {
-    const { username, password, fullName, email, phone, role, assignedArea } = req.body;
+    const { username, password, fullName, email, phone, role, assignedArea, citizenIdentificationCard, dateOfBirth } = req.body;
 
     // Check if user exists
     const userExists = await User.findOne({ 
       where: { 
-        [Op.or]: [{ username }, { email }] 
+        [Op.or]: [
+          { username }, 
+          { email },
+          ...(citizenIdentificationCard ? [{ citizenIdentificationCard }] : [])
+        ] 
       } 
     });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create user
+    // Create user (default role is citizen if not specified)
     const user = await User.create({
       username,
       password,
       fullName,
       email,
       phone,
-      role,
-      assignedArea
+      role: role || 'citizen',
+      assignedArea,
+      citizenIdentificationCard,
+      dateOfBirth
     });
 
     res.status(201).json({

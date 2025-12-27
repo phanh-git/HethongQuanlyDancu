@@ -7,14 +7,16 @@ const {
   updateComplaintStatus,
   mergeComplaints,
   assignComplaint,
-  getComplaintStats
+  getComplaintStats,
+  getCategories
 } = require('../controllers/complaintController');
 const { auth, authorize } = require('../middleware/auth');
 
+router.get('/categories', getCategories);
 router.get('/', auth, getComplaints);
 router.get('/stats', auth, getComplaintStats);
 router.get('/:id', auth, getComplaint);
-router.post('/', auth, createComplaint);
+router.post('/', createComplaint); // Public route for citizen submissions
 router.put('/:id/status', auth, authorize('admin', 'team_leader', 'deputy_leader'), updateComplaintStatus);
 router.post('/merge', auth, authorize('admin', 'team_leader', 'deputy_leader'), mergeComplaints);
 router.put('/:id/assign', auth, authorize('admin', 'team_leader', 'deputy_leader'), assignComplaint);
