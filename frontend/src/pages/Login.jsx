@@ -10,6 +10,7 @@ import {
   Alert
 } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
+import { getRedirectPath, ERROR_MESSAGES } from '../constants';
 
 const Login = () => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
@@ -24,10 +25,12 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await login(credentials);
-      navigate('/');
+      const userData = await login(credentials);
+      
+      // Redirect based on user role using helper function
+      navigate(getRedirectPath(userData.role));
     } catch (err) {
-      setError(err.response?.data?.message || 'Đăng nhập thất bại');
+      setError(err.response?.data?.message || ERROR_MESSAGES.LOGIN_FAILED);
     } finally {
       setLoading(false);
     }
