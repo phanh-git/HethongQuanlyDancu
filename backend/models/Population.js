@@ -1,111 +1,137 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const populationSchema = new mongoose.Schema({
-  fullName: {
-    type: String,
-    required: true
+const Population = sequelize.define('Population', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
   },
-  alias: String,
+  fullName: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  alias: {
+    type: DataTypes.STRING
+  },
   dateOfBirth: {
-    type: Date,
-    required: true
+    type: DataTypes.DATE,
+    allowNull: false
   },
   gender: {
-    type: String,
-    enum: ['male', 'female', 'other'],
-    required: true
+    type: DataTypes.ENUM('male', 'female', 'other'),
+    allowNull: false
   },
   idNumber: {
-    type: String,
+    type: DataTypes.STRING,
     unique: true,
-    sparse: true // Allow null for newborns
+    allowNull: true
   },
-  idIssueDate: Date,
-  idIssuePlace: String,
+  idIssueDate: {
+    type: DataTypes.DATE
+  },
+  idIssuePlace: {
+    type: DataTypes.STRING
+  },
   nationality: {
-    type: String,
-    default: 'Việt Nam'
+    type: DataTypes.STRING,
+    defaultValue: 'Việt Nam'
   },
   ethnicity: {
-    type: String,
-    default: 'Kinh'
+    type: DataTypes.STRING,
+    defaultValue: 'Kinh'
   },
-  religion: String,
+  religion: {
+    type: DataTypes.STRING
+  },
   nativePlace: {
-    province: String,
-    district: String,
-    ward: String
+    type: DataTypes.JSONB,
+    defaultValue: {}
   },
-  occupation: String,
+  occupation: {
+    type: DataTypes.STRING
+  },
   education: {
-    type: String,
-    enum: ['primary', 'secondary', 'high_school', 'college', 'university', 'postgraduate', 'other']
+    type: DataTypes.ENUM('primary', 'secondary', 'high_school', 'college', 'university', 'postgraduate', 'other')
   },
-  household: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Household',
-    required: true
+  householdId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'Households',
+      key: 'id'
+    }
   },
   relationshipToHead: {
-    type: String,
-    enum: ['head', 'spouse', 'child', 'parent', 'sibling', 'other'],
-    required: true
+    type: DataTypes.ENUM('head', 'spouse', 'child', 'parent', 'sibling', 'other'),
+    allowNull: false
   },
   residenceStatus: {
-    type: String,
-    enum: ['permanent', 'temporary', 'temporarily_absent'],
-    default: 'permanent'
+    type: DataTypes.ENUM('permanent', 'temporary', 'temporarily_absent'),
+    defaultValue: 'permanent'
   },
-  permanentResidenceDate: Date,
+  permanentResidenceDate: {
+    type: DataTypes.DATE
+  },
   previousAddress: {
-    type: String,
-    default: 'Mới sinh' // Default for newborns
+    type: DataTypes.STRING,
+    defaultValue: 'Mới sinh'
   },
   isNewborn: {
-    type: Boolean,
-    default: false
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
   isDead: {
-    type: Boolean,
-    default: false
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
-  deathDate: Date,
-  deathReason: String,
+  deathDate: {
+    type: DataTypes.DATE
+  },
+  deathReason: {
+    type: DataTypes.STRING
+  },
   hasMovedOut: {
-    type: Boolean,
-    default: false
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
-  moveOutDate: Date,
-  moveOutDestination: String,
-  notes: String,
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+  moveOutDate: {
+    type: DataTypes.DATE
+  },
+  moveOutDestination: {
+    type: DataTypes.STRING
+  },
+  notes: {
+    type: DataTypes.TEXT
+  },
+  createdById: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
   }
-}, { timestamps: true });
-
-// Calculate age
-populationSchema.virtual('age').get(function() {
-  const today = new Date();
-  const birthDate = new Date(this.dateOfBirth);
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
+}, {
+  timestamps: true,
+  getterMethods: {
+    age() {
+      const today = new Date();
+      const birthDate = new Date(this.dateOfBirth);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    },
+    ageCategory() {
+      const age = this.age;
+      if (age < 6) return 'preschool';
+      if (age < 18) return 'student';
+      if (age < 60) return 'working';
+      return 'retired';
+    }
   }
-  return age;
 });
 
-// Get age category
-populationSchema.virtual('ageCategory').get(function() {
-  const age = this.age;
-  if (age < 6) return 'preschool';
-  if (age < 18) return 'student';
-  if (age < 60) return 'working';
-  return 'retired';
-});
-
-populationSchema.set('toJSON', { virtuals: true });
-populationSchema.set('toObject', { virtuals: true });
-
-module.exports = mongoose.model('Population', populationSchema);
+module.exports = Population;

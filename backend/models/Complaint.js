@@ -1,86 +1,100 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const complaintSchema = new mongoose.Schema({
+const Complaint = sequelize.define('Complaint', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
+  },
   complaintCode: {
-    type: String,
+    type: DataTypes.STRING,
     unique: true
   },
-  submittedBy: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Population'
-  }],
+  submittedBy: {
+    type: DataTypes.ARRAY(DataTypes.UUID),
+    defaultValue: []
+  },
   category: {
-    type: String,
-    enum: ['environment', 'security', 'infrastructure', 'social', 'other'],
-    required: true
+    type: DataTypes.ENUM('environment', 'security', 'infrastructure', 'social', 'other'),
+    allowNull: false
   },
   title: {
-    type: String,
-    required: true
+    type: DataTypes.STRING,
+    allowNull: false
   },
   description: {
-    type: String,
-    required: true
+    type: DataTypes.TEXT,
+    allowNull: false
   },
   status: {
-    type: String,
-    enum: ['received', 'in_progress', 'resolved', 'rejected'],
-    default: 'received'
+    type: DataTypes.ENUM('received', 'in_progress', 'resolved', 'rejected'),
+    defaultValue: 'received'
   },
   priority: {
-    type: String,
-    enum: ['low', 'medium', 'high', 'urgent'],
-    default: 'medium'
+    type: DataTypes.ENUM('low', 'medium', 'high', 'urgent'),
+    defaultValue: 'medium'
   },
-  mergedFrom: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Complaint'
-  }],
+  mergedFrom: {
+    type: DataTypes.ARRAY(DataTypes.UUID),
+    defaultValue: []
+  },
   isMerged: {
-    type: Boolean,
-    default: false
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
-  mergedInto: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Complaint'
-  },
-  statusHistory: [{
-    status: String,
-    date: { type: Date, default: Date.now },
-    note: String,
-    updatedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+  mergedIntoId: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'Complaints',
+      key: 'id'
     }
-  }],
-  resolution: String,
-  resolvedDate: Date,
-  resolvedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
   },
-  assignedTo: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+  statusHistory: {
+    type: DataTypes.JSONB,
+    defaultValue: []
   },
-  attachments: [{
-    filename: String,
-    url: String,
-    uploadedAt: { type: Date, default: Date.now }
-  }],
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+  resolution: {
+    type: DataTypes.TEXT
+  },
+  resolvedDate: {
+    type: DataTypes.DATE
+  },
+  resolvedById: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
+  },
+  assignedToId: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
+  },
+  attachments: {
+    type: DataTypes.JSONB,
+    defaultValue: []
+  },
+  createdById: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
   }
-}, { timestamps: true });
-
-// Auto-generate complaint code
-complaintSchema.pre('save', async function(next) {
-  if (!this.complaintCode) {
-    const count = await this.constructor.countDocuments();
-    this.complaintCode = `KN${String(count + 1).padStart(6, '0')}`;
+}, {
+  timestamps: true,
+  hooks: {
+    beforeCreate: async (complaint) => {
+      if (!complaint.complaintCode) {
+        const count = await Complaint.count();
+        complaint.complaintCode = `KN${String(count + 1).padStart(6, '0')}`;
+      }
+    }
   }
-  next();
 });
 
-module.exports = mongoose.model('Complaint', complaintSchema);
+module.exports = Complaint;

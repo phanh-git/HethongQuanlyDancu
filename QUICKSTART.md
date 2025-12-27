@@ -36,25 +36,25 @@ cp .env.example .env
 Chỉnh sửa `backend/.env`:
 ```env
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/population_management
+DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD=DB configuration
 JWT_SECRET=your-secret-key-here
 JWT_EXPIRE=7d
 NODE_ENV=development
 ```
 
-### Bước 3: Khởi động MongoDB
+### Bước 3: Khởi động PostgreSQL
 
 **Linux/Mac:**
 ```bash
-mongod
+"Start PostgreSQL"
 ```
 
 **Windows:**
 ```
-"C:\Program Files\MongoDB\Server\6.0\bin\mongod.exe"
+"C:\Program Files\PostgreSQL\Server\6.0\bin\"Start PostgreSQL".exe"
 ```
 
-Hoặc dùng MongoDB Compass/Atlas
+Hoặc dùng PostgreSQL Compass/Atlas
 
 ### Bước 4: Seed dữ liệu mẫu (Tùy chọn)
 
@@ -134,21 +134,21 @@ npm run preview  # Preview production build
 
 ## Troubleshooting
 
-### MongoDB không kết nối được
+### PostgreSQL không kết nối được
 
 **Kiểm tra:**
 ```bash
-# Kiểm tra MongoDB có chạy không
-ps aux | grep mongod
+# Kiểm tra PostgreSQL có chạy không
+ps aux | grep "Start PostgreSQL"
 
 # Hoặc trên Windows
-tasklist | findstr mongod
+tasklist | findstr "Start PostgreSQL"
 ```
 
 **Giải pháp:**
-- Đảm bảo MongoDB đang chạy
-- Kiểm tra MONGODB_URI trong .env
-- Thử kết nối qua MongoDB Compass
+- Đảm bảo PostgreSQL đang chạy
+- Kiểm tra DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD trong .env
+- Thử kết nối qua PostgreSQL Compass
 
 ### Port 3000 hoặc 5000 đã được sử dụng
 

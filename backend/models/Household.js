@@ -1,54 +1,55 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const householdSchema = new mongoose.Schema({
+const Household = sequelize.define('Household', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
+  },
   householdCode: {
-    type: String,
-    required: true,
+    type: DataTypes.STRING,
+    allowNull: false,
     unique: true
   },
-  householdHead: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Population',
-    required: true
+  householdHeadId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'Populations',
+      key: 'id'
+    }
   },
   address: {
-    houseNumber: { type: String, required: true },
-    street: String,
-    ward: String,
-    district: String,
-    city: String
+    type: DataTypes.JSONB,
+    allowNull: false,
+    defaultValue: {}
   },
-  members: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Population'
-  }],
-  history: [{
-    date: { type: Date, default: Date.now },
-    event: String, // 'created', 'split_from', 'changed_head', 'member_added', 'member_removed'
-    description: String,
-    relatedHousehold: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Household'
-    }
-  }],
+  history: {
+    type: DataTypes.JSONB,
+    defaultValue: []
+  },
   status: {
-    type: String,
-    enum: ['active', 'inactive'],
-    default: 'active'
+    type: DataTypes.ENUM('active', 'inactive'),
+    defaultValue: 'active'
   },
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+  createdById: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
   }
-}, { timestamps: true });
-
-// Auto-generate household code
-householdSchema.pre('save', async function(next) {
-  if (!this.householdCode) {
-    const count = await this.constructor.countDocuments();
-    this.householdCode = `HK${String(count + 1).padStart(6, '0')}`;
+}, {
+  timestamps: true,
+  hooks: {
+    beforeCreate: async (household) => {
+      if (!household.householdCode) {
+        const count = await Household.count();
+        household.householdCode = `HK${String(count + 1).padStart(6, '0')}`;
+      }
+    }
   }
-  next();
 });
 
-module.exports = mongoose.model('Household', householdSchema);
+module.exports = Household;

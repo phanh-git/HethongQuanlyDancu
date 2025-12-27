@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { User } = require('../models');
+const { Op } = require('sequelize');
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -16,7 +17,11 @@ exports.register = async (req, res) => {
     const { username, password, fullName, email, phone, role, assignedArea } = req.body;
 
     // Check if user exists
-    const userExists = await User.findOne({ $or: [{ username }, { email }] });
+    const userExists = await User.findOne({ 
+      where: { 
+        [Op.or]: [{ username }, { email }] 
+      } 
+    });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
@@ -33,12 +38,12 @@ exports.register = async (req, res) => {
     });
 
     res.status(201).json({
-      _id: user._id,
+      id: user.id,
       username: user.username,
       fullName: user.fullName,
       email: user.email,
       role: user.role,
-      token: generateToken(user._id)
+      token: generateToken(user.id)
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -53,7 +58,7 @@ exports.login = async (req, res) => {
     const { username, password } = req.body;
 
     // Check for user
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ where: { username } });
     if (!user || !user.isActive) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -65,17 +70,17 @@ exports.login = async (req, res) => {
     }
 
     // Update last login
-    user.lastLogin = Date.now();
+    user.lastLogin = new Date();
     await user.save();
 
     res.json({
-      _id: user._id,
+      id: user.id,
       username: user.username,
       fullName: user.fullName,
       email: user.email,
       role: user.role,
       assignedArea: user.assignedArea,
-      token: generateToken(user._id)
+      token: generateToken(user.id)
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -87,7 +92,9 @@ exports.login = async (req, res) => {
 // @access  Private
 exports.getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('-password');
+    const user = await User.findByPk(req.user.id, {
+      attributes: { exclude: ['password'] }
+    });
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: error.message });

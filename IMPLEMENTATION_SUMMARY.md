@@ -75,7 +75,7 @@ A professional population management system built as a mini-ERP solution for man
 ### Backend Stack
 - **Runtime:** Node.js v16+
 - **Framework:** Express.js
-- **Database:** MongoDB with Mongoose ODM
+- **Database:** PostgreSQL with Sequelize ORM
 - **Authentication:** JWT (JSON Web Tokens)
 - **Security:** bcryptjs, helmet, cors
 - **Excel Export:** ExcelJS
@@ -100,7 +100,7 @@ HethongQuanlyDancu/
 │   ├── config/              # Database configuration
 │   ├── controllers/         # Business logic (7 controllers)
 │   ├── middleware/          # Auth middleware
-│   ├── models/             # Mongoose schemas (5 models)
+│   ├── models/             # Sequelize schemas (5 models)
 │   ├── routes/             # API routes (7 route files)
 │   ├── seed.js             # Database seeder
 │   └── server.js           # Application entry point
@@ -159,7 +159,7 @@ HethongQuanlyDancu/
 
 3. **Input Validation**
    - Express-validator for request validation
-   - Mongoose schema validation
+   - Sequelize schema validation
    - XSS prevention
    - CORS configuration
 
@@ -254,7 +254,7 @@ HethongQuanlyDancu/
 ### Backend Achievements
 ✅ Complete REST API with 30+ endpoints  
 ✅ Proper MVC architecture  
-✅ Database relationships with Mongoose  
+✅ Database relationships with Sequelize  
 ✅ Automatic code generation (household, complaint)  
 ✅ Excel export functionality  
 ✅ History tracking for all entities  
@@ -286,7 +286,7 @@ User → Frontend (React)
     → Backend (Express) 
       → Controller 
         → Model 
-          → MongoDB
+          → PostgreSQL
 ```
 
 **Authentication Flow:**
@@ -403,7 +403,7 @@ MIT License - Free to use and modify
 Built with ❤️ using:
 - Node.js & Express.js
 - React & Material-UI
-- MongoDB & Mongoose
+- PostgreSQL & Sequelize
 - Vite build tool
 - Recharts library
 - And many other open-source libraries

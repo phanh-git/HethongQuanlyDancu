@@ -1,26 +1,15 @@
 require('dotenv').config();
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const User = require('./models/User');
-const Household = require('./models/Household');
-const Population = require('./models/Population');
-const Complaint = require('./models/Complaint');
+const { sequelize, User, Household, Population, Complaint } = require('./models');
 
 const seedDatabase = async () => {
   try {
-    // Connect to MongoDB
-    await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
-    console.log('Connected to MongoDB');
+    // Connect to PostgreSQL
+    await sequelize.authenticate();
+    console.log('Connected to PostgreSQL');
 
-    // Clear existing data
-    await User.deleteMany({});
-    await Household.deleteMany({});
-    await Population.deleteMany({});
-    await Complaint.deleteMany({});
-    console.log('Cleared existing data');
+    // Sync database (drop and recreate tables)
+    await sequelize.sync({ force: true });
+    console.log('Database synchronized');
 
     // Create admin user
     const adminUser = await User.create({
@@ -64,8 +53,8 @@ const seedDatabase = async () => {
       residenceStatus: 'permanent',
       permanentResidenceDate: new Date('2010-03-20'),
       previousAddress: 'Hà Nội',
-      household: null,
-      createdBy: adminUser._id
+      householdId: null, // Will be updated after household creation
+      createdById: adminUser.id
     });
 
     const person2 = await Population.create({
@@ -83,8 +72,8 @@ const seedDatabase = async () => {
       residenceStatus: 'permanent',
       permanentResidenceDate: new Date('2010-03-20'),
       previousAddress: 'Hải Phòng',
-      household: null,
-      createdBy: adminUser._id
+      householdId: null,
+      createdById: adminUser.id
     });
 
     const person3 = await Population.create({
@@ -98,13 +87,13 @@ const seedDatabase = async () => {
       permanentResidenceDate: new Date('2015-03-10'),
       previousAddress: 'Mới sinh',
       isNewborn: true,
-      household: null,
-      createdBy: adminUser._id
+      householdId: null,
+      createdById: adminUser.id
     });
 
     // Create household 1
     const household1 = await Household.create({
-      householdHead: person1._id,
+      householdHeadId: person1.id,
       address: {
         houseNumber: '123',
         street: 'Nguyễn Trãi',
@@ -112,20 +101,19 @@ const seedDatabase = async () => {
         district: 'Quận 1',
         city: 'TP. Hồ Chí Minh'
       },
-      members: [person1._id, person2._id, person3._id],
       status: 'active',
-      createdBy: adminUser._id,
+      createdById: adminUser.id,
       history: [{
+        date: new Date(),
         event: 'created',
         description: 'Hộ khẩu được tạo mới'
       }]
     });
 
     // Update population with household reference
-    await Population.updateMany(
-      { _id: { $in: [person1._id, person2._id, person3._id] } },
-      { household: household1._id }
-    );
+    await person1.update({ householdId: household1.id });
+    await person2.update({ householdId: household1.id });
+    await person3.update({ householdId: household1.id });
 
     console.log('✓ Created sample household 1 with 3 members');
 
@@ -145,8 +133,8 @@ const seedDatabase = async () => {
       residenceStatus: 'permanent',
       permanentResidenceDate: new Date('2005-06-15'),
       previousAddress: 'Đà Nẵng',
-      household: null,
-      createdBy: adminUser._id
+      householdId: null,
+      createdById: adminUser.id
     });
 
     const person5 = await Population.create({
@@ -164,13 +152,13 @@ const seedDatabase = async () => {
       residenceStatus: 'permanent',
       permanentResidenceDate: new Date('2005-06-15'),
       previousAddress: 'Huế',
-      household: null,
-      createdBy: adminUser._id
+      householdId: null,
+      createdById: adminUser.id
     });
 
     // Create household 2
     const household2 = await Household.create({
-      householdHead: person4._id,
+      householdHeadId: person4.id,
       address: {
         houseNumber: '456',
         street: 'Lê Lợi',
@@ -178,56 +166,57 @@ const seedDatabase = async () => {
         district: 'Quận 1',
         city: 'TP. Hồ Chí Minh'
       },
-      members: [person4._id, person5._id],
       status: 'active',
-      createdBy: adminUser._id,
+      createdById: adminUser.id,
       history: [{
+        date: new Date(),
         event: 'created',
         description: 'Hộ khẩu được tạo mới'
       }]
     });
 
-    await Population.updateMany(
-      { _id: { $in: [person4._id, person5._id] } },
-      { household: household2._id }
-    );
+    await person4.update({ householdId: household2.id });
+    await person5.update({ householdId: household2.id });
 
     console.log('✓ Created sample household 2 with 2 members');
 
     // Create sample complaints
     await Complaint.create({
-      submittedBy: [person1._id],
+      submittedBy: [person1.id],
       category: 'infrastructure',
       title: 'Cống thoát nước bị hỏng',
       description: 'Cống thoát nước trước nhà số 123 bị hỏng, nước chảy tràn ra đường',
       status: 'received',
       priority: 'high',
-      createdBy: adminUser._id,
+      createdById: adminUser.id,
       statusHistory: [{
         status: 'received',
+        date: new Date(),
         note: 'Đã tiếp nhận phản ánh',
-        updatedBy: adminUser._id
+        updatedById: adminUser.id
       }]
     });
 
     await Complaint.create({
-      submittedBy: [person4._id, person5._id],
+      submittedBy: [person4.id, person5.id],
       category: 'environment',
       title: 'Rác thải chưa được thu gom',
       description: 'Rác thải tại khu vực phường 2 đã 3 ngày chưa được thu gom',
       status: 'in_progress',
       priority: 'medium',
-      createdBy: adminUser._id,
+      createdById: adminUser.id,
       statusHistory: [
         {
           status: 'received',
+          date: new Date(),
           note: 'Đã tiếp nhận phản ánh',
-          updatedBy: adminUser._id
+          updatedById: adminUser.id
         },
         {
           status: 'in_progress',
+          date: new Date(),
           note: 'Đang liên hệ đơn vị thu gom rác',
-          updatedBy: teamLeader._id
+          updatedById: teamLeader.id
         }
       ]
     });
@@ -255,3 +244,5 @@ const seedDatabase = async () => {
 };
 
 seedDatabase();
+
+

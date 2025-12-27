@@ -43,7 +43,7 @@ Hệ thống quản lý dân cư chuyên nghiệp với kiến trúc ERP thu nh�
 
 ### Backend
 - Node.js & Express.js
-- MongoDB với Mongoose
+- PostgreSQL với Sequelize
 - JWT Authentication
 - ExcelJS cho xuất báo cáo
 
@@ -57,7 +57,7 @@ Hệ thống quản lý dân cư chuyên nghiệp với kiến trúc ERP thu nh�
 ## 📋 Yêu cầu hệ thống
 
 - Node.js >= 16.x
-- MongoDB >= 4.x
+- PostgreSQL >= 12.x
 - npm hoặc yarn
 
 ## 🔧 Cài đặt
@@ -88,7 +88,11 @@ Chỉnh sửa file `.env` với thông tin của bạn:
 
 ```env
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/population_management
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=population_management
+DB_USER=postgres
+DB_PASSWORD=postgres
 JWT_SECRET=your-secret-key-change-in-production
 JWT_EXPIRE=7d
 NODE_ENV=development
@@ -101,10 +105,13 @@ cd ../frontend
 npm install
 ```
 
-### 4. Khởi động MongoDB
+### 4. Khởi động PostgreSQL
 
 ```bash
-mongod
+# Start PostgreSQL service
+# Linux: sudo service postgresql start
+# Mac: brew services start postgresql
+# Windows: Start PostgreSQL from Services
 ```
 
 ### 5. Chạy ứng dụng
