@@ -2,6 +2,8 @@
 
 Hệ thống quản lý dân cư chuyên nghiệp với kiến trúc ERP thu nhỏ, sử dụng Node.js (Backend) và React (Frontend).
 
+> 🚀 **Quick Start:** Xem [QUICKSTART.md](./QUICKSTART.md) để bắt đầu trong 5 phút!
+
 ## 🌟 Tính năng chính
 
 ### 1. Dashboard (Tổng quan)
@@ -59,6 +61,8 @@ Hệ thống quản lý dân cư chuyên nghiệp với kiến trúc ERP thu nh�
 - npm hoặc yarn
 
 ## 🔧 Cài đặt
+
+> 💡 **Cách nhanh nhất:** Chạy `./setup.sh` (Linux/Mac) hoặc `setup.bat` (Windows)
 
 ### 1. Clone repository
 
@@ -119,19 +123,43 @@ npm run dev
 
 Mở trình duyệt và truy cập: `http://localhost:3000`
 
-## 👤 Tài khoản mặc định
-
-Sau khi khởi động, cần tạo tài khoản quản trị viên qua API:
+### 6. Seed dữ liệu mẫu (Tùy chọn)
 
 ```bash
-POST /api/auth/register
-{
-  "username": "admin",
-  "password": "admin123",
-  "fullName": "Quản trị viên",
-  "email": "admin@example.com",
-  "role": "admin"
-}
+cd backend
+npm run seed
+```
+
+Lệnh này tạo tài khoản admin và dữ liệu mẫu:
+- Username: `admin` / Password: `admin123`
+- Username: `leader` / Password: `leader123`
+
+## 📚 Tài liệu
+
+## 📚 Tài liệu
+
+- [🚀 Quick Start Guide](./QUICKSTART.md) - Bắt đầu nhanh trong 5 phút
+- [📖 User Guide](./USER_GUIDE.md) - Hướng dẫn sử dụng chi tiết (Tiếng Việt)
+- [📊 API Documentation](./API_DOCS.md) - Tài liệu API đầy đủ
+
+## 👤 Tài khoản mặc định
+
+Sau khi chạy `npm run seed`, sử dụng tài khoản:
+
+## 👤 Tài khoản mặc định
+
+Sau khi chạy `npm run seed`, sử dụng tài khoản:
+
+**Admin:**
+```
+Username: admin
+Password: admin123
+```
+
+**Team Leader:**
+```
+Username: leader
+Password: leader123
 ```
 
 ## 📁 Cấu trúc thư mục
@@ -188,6 +216,14 @@ Giao diện được thiết kế responsive, tương thích với:
 ## 📊 API Documentation
 
 Chi tiết xem tại [API_DOCS.md](./API_DOCS.md)
+
+**Các endpoint chính:**
+- `POST /api/auth/login` - Đăng nhập
+- `GET /api/dashboard/stats` - Thống kê tổng quan
+- `GET /api/households` - Danh sách hộ khẩu
+- `GET /api/population` - Danh sách nhân khẩu
+- `GET /api/complaints` - Danh sách kiến nghị
+- `GET /api/reports/*` - Các loại báo cáo
 
 ## 🤝 Đóng góp
 
