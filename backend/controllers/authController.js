@@ -30,14 +30,14 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create user (default role is citizen if not specified)
+    // Create user - force role to be 'citizen' for public registration
     const user = await User.create({
       username,
       password,
       fullName,
       email,
       phone,
-      role: role || 'citizen',
+      role: 'citizen', // Always set to citizen for public registration
       assignedArea,
       citizenIdentificationCard,
       dateOfBirth

@@ -20,6 +20,7 @@ app.use(morgan('dev'));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/admin', require('./routes/admin'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/households', require('./routes/households'));
 app.use('/api/population', require('./routes/population'));

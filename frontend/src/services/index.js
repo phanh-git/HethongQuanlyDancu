@@ -207,3 +207,25 @@ export const reportService = {
     return response.data;
   }
 };
+
+export const adminService = {
+  createStaff: async (data) => {
+    const response = await api.post('/admin/create-staff', data);
+    return response.data;
+  },
+
+  getStaffList: async (params) => {
+    const response = await api.get('/admin/staff', { params });
+    return response.data;
+  },
+
+  updateStaffStatus: async (id, data) => {
+    const response = await api.put(`/admin/staff/${id}/status`, data);
+    return response.data;
+  },
+
+  updateStaffInfo: async (id, data) => {
+    const response = await api.put(`/admin/staff/${id}`, data);
+    return response.data;
+  }
+};
