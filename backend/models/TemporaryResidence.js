@@ -3,12 +3,12 @@ const { sequelize } = require('../config/database');
 
 const TemporaryResidence = sequelize.define('TemporaryResidence', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
     primaryKey: true
   },
   personId: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     allowNull: false,
     references: {
       model: 'Populations',
@@ -43,7 +43,7 @@ const TemporaryResidence = sequelize.define('TemporaryResidence', {
     defaultValue: []
   },
   createdById: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     references: {
       model: 'Users',
       key: 'id'

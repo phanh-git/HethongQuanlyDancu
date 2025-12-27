@@ -1,26 +1,38 @@
-const Complaint = require('../models/Complaint');
+const { Complaint, ComplaintCategory, User, sequelize } = require('../models');
+const { Op } = require('sequelize');
+
+// Status constants
+const COMPLAINT_STATUS = {
+  SUBMITTED: 'submitted',
+  ACKNOWLEDGED: 'acknowledged',
+  FORWARDED: 'forwarded',
+  ANSWERED: 'answered'
+};
 
 // @desc    Get all complaints
 // @route   GET /api/complaints
 // @access  Private
 exports.getComplaints = async (req, res) => {
   try {
-    const { page = 1, limit = 10, category, status, priority } = req.query;
+    const { page = 1, limit = 10, categoryId, status, priority } = req.query;
     const query = { isMerged: false };
 
-    if (category) query.category = category;
+    if (categoryId) query.categoryId = categoryId;
     if (status) query.status = status;
     if (priority) query.priority = priority;
 
-    const complaints = await Complaint.find(query)
-      .populate('submittedBy', 'fullName idNumber')
-      .populate('assignedTo', 'fullName')
-      .populate('mergedFrom', 'complaintCode')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+    const complaints = await Complaint.findAll({
+      where: query,
+      include: [
+        { model: ComplaintCategory, as: 'category' },
+        { model: User, as: 'assignedTo', attributes: ['id', 'fullName'] }
+      ],
+      order: [['createdAt', 'DESC']],
+      limit: limit * 1,
+      offset: (page - 1) * limit
+    });
 
-    const count = await Complaint.countDocuments(query);
+    const count = await Complaint.count({ where: query });
 
     res.json({
       complaints,
@@ -38,11 +50,13 @@ exports.getComplaints = async (req, res) => {
 // @access  Private
 exports.getComplaint = async (req, res) => {
   try {
-    const complaint = await Complaint.findById(req.params.id)
-      .populate('submittedBy', 'fullName idNumber phone')
-      .populate('assignedTo', 'fullName')
-      .populate('mergedFrom')
-      .populate('statusHistory.updatedBy', 'fullName');
+    const complaint = await Complaint.findByPk(req.params.id, {
+      include: [
+        { model: ComplaintCategory, as: 'category' },
+        { model: User, as: 'assignedTo', attributes: ['id', 'fullName'] },
+        { model: User, as: 'creator', attributes: ['id', 'fullName'] }
+      ]
+    });
 
     if (!complaint) {
       return res.status(404).json({ message: 'Complaint not found' });
@@ -56,21 +70,32 @@ exports.getComplaint = async (req, res) => {
 
 // @desc    Create complaint
 // @route   POST /api/complaints
-// @access  Private
+// @access  Public/Private
 exports.createComplaint = async (req, res) => {
   try {
     const complaintData = req.body;
-    complaintData.createdBy = req.user._id;
+    
+    // If user is authenticated, use their ID
+    if (req.user) {
+      complaintData.createdById = req.user.id;
+    }
+    
+    // Set initial status and history
+    complaintData.status = COMPLAINT_STATUS.SUBMITTED;
     complaintData.statusHistory = [{
-      status: 'received',
-      note: 'Phiếu kiến nghị được tiếp nhận',
-      updatedBy: req.user._id
+      status: COMPLAINT_STATUS.SUBMITTED,
+      date: new Date(),
+      note: 'Đã phản ánh',
+      updatedById: req.user ? req.user.id : null
     }];
 
     const complaint = await Complaint.create(complaintData);
 
-    const populatedComplaint = await Complaint.findById(complaint._id)
-      .populate('submittedBy', 'fullName idNumber');
+    const populatedComplaint = await Complaint.findByPk(complaint.id, {
+      include: [
+        { model: ComplaintCategory, as: 'category' }
+      ]
+    });
 
     res.status(201).json(populatedComplaint);
   } catch (error) {
@@ -84,30 +109,39 @@ exports.createComplaint = async (req, res) => {
 exports.updateComplaintStatus = async (req, res) => {
   try {
     const { status, note, resolution } = req.body;
-    const complaint = await Complaint.findById(req.params.id);
+    const complaint = await Complaint.findByPk(req.params.id);
 
     if (!complaint) {
       return res.status(404).json({ message: 'Complaint not found' });
     }
 
+    // Update status
     complaint.status = status;
-    complaint.statusHistory.push({
+    
+    // Add to status history
+    const history = complaint.statusHistory || [];
+    history.push({
       status,
+      date: new Date(),
       note,
-      updatedBy: req.user._id
+      updatedById: req.user.id
     });
+    complaint.statusHistory = history;
 
-    if (status === 'resolved') {
+    if (status === COMPLAINT_STATUS.ANSWERED) {
       complaint.resolvedDate = new Date();
-      complaint.resolvedBy = req.user._id;
+      complaint.resolvedById = req.user.id;
       complaint.resolution = resolution;
     }
 
     await complaint.save();
 
-    const updatedComplaint = await Complaint.findById(complaint._id)
-      .populate('submittedBy', 'fullName')
-      .populate('statusHistory.updatedBy', 'fullName');
+    const updatedComplaint = await Complaint.findByPk(complaint.id, {
+      include: [
+        { model: ComplaintCategory, as: 'category' },
+        { model: User, as: 'assignedTo', attributes: ['id', 'fullName'] }
+      ]
+    });
 
     res.json(updatedComplaint);
   } catch (error) {
@@ -123,43 +157,42 @@ exports.mergeComplaints = async (req, res) => {
     const { complaintIds, mainComplaintId, mergedTitle, mergedDescription } = req.body;
 
     // Validate main complaint exists
-    const mainComplaint = await Complaint.findById(mainComplaintId);
+    const mainComplaint = await Complaint.findByPk(mainComplaintId);
     if (!mainComplaint) {
       return res.status(404).json({ message: 'Main complaint not found' });
     }
 
     // Get all complaints to merge
-    const complaintsToMerge = await Complaint.find({
-      _id: { $in: complaintIds }
-    });
-
-    // Collect all submitters
-    const allSubmitters = new Set();
-    complaintsToMerge.forEach(complaint => {
-      complaint.submittedBy.forEach(submitter => {
-        allSubmitters.add(submitter.toString());
-      });
+    const complaintsToMerge = await Complaint.findAll({
+      where: {
+        id: { [Op.in]: complaintIds }
+      }
     });
 
     // Update main complaint
-    mainComplaint.submittedBy = Array.from(allSubmitters);
     mainComplaint.title = mergedTitle || mainComplaint.title;
     mainComplaint.description = mergedDescription || mainComplaint.description;
     mainComplaint.mergedFrom = complaintIds.filter(id => id !== mainComplaintId);
     await mainComplaint.save();
 
     // Mark other complaints as merged
-    await Complaint.updateMany(
-      { _id: { $in: complaintIds.filter(id => id !== mainComplaintId) } },
+    await Complaint.update(
       { 
         isMerged: true,
-        mergedInto: mainComplaintId
+        mergedIntoId: mainComplaintId
+      },
+      {
+        where: {
+          id: { [Op.in]: complaintIds.filter(id => id !== mainComplaintId) }
+        }
       }
     );
 
-    const updatedComplaint = await Complaint.findById(mainComplaint._id)
-      .populate('submittedBy', 'fullName idNumber')
-      .populate('mergedFrom', 'complaintCode title');
+    const updatedComplaint = await Complaint.findByPk(mainComplaint.id, {
+      include: [
+        { model: ComplaintCategory, as: 'category' }
+      ]
+    });
 
     res.json(updatedComplaint);
   } catch (error) {
@@ -172,24 +205,31 @@ exports.mergeComplaints = async (req, res) => {
 // @access  Private
 exports.assignComplaint = async (req, res) => {
   try {
-    const { assignedTo } = req.body;
-    const complaint = await Complaint.findById(req.params.id);
+    const { assignedToId } = req.body;
+    const complaint = await Complaint.findByPk(req.params.id);
 
     if (!complaint) {
       return res.status(404).json({ message: 'Complaint not found' });
     }
 
-    complaint.assignedTo = assignedTo;
-    complaint.statusHistory.push({
+    complaint.assignedToId = assignedToId;
+    
+    const history = complaint.statusHistory || [];
+    history.push({
       status: complaint.status,
+      date: new Date(),
       note: 'Phiếu được phân công xử lý',
-      updatedBy: req.user._id
+      updatedById: req.user.id
     });
+    complaint.statusHistory = history;
 
     await complaint.save();
 
-    const updatedComplaint = await Complaint.findById(complaint._id)
-      .populate('assignedTo', 'fullName');
+    const updatedComplaint = await Complaint.findByPk(complaint.id, {
+      include: [
+        { model: User, as: 'assignedTo', attributes: ['id', 'fullName'] }
+      ]
+    });
 
     res.json(updatedComplaint);
   } catch (error) {
@@ -207,39 +247,72 @@ exports.getComplaintStats = async (req, res) => {
 
     if (startDate && endDate) {
       query.createdAt = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
+        [Op.gte]: new Date(startDate),
+        [Op.lte]: new Date(endDate)
       };
     }
 
-    const totalComplaints = await Complaint.countDocuments(query);
-    const byStatus = await Complaint.aggregate([
-      { $match: query },
-      { $group: { _id: '$status', count: { $sum: 1 } } }
-    ]);
+    const totalComplaints = await Complaint.count({ where: query });
+    
+    const byStatus = await Complaint.findAll({
+      where: query,
+      attributes: [
+        'status',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count']
+      ],
+      group: ['status'],
+      raw: true
+    });
 
-    const byCategory = await Complaint.aggregate([
-      { $match: query },
-      { $group: { _id: '$category', count: { $sum: 1 } } }
-    ]);
+    const byCategory = await Complaint.findAll({
+      where: query,
+      attributes: [
+        'categoryId',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count']
+      ],
+      include: [
+        { model: ComplaintCategory, as: 'category', attributes: ['name'] }
+      ],
+      group: ['categoryId', 'category.id', 'category.name'],
+      raw: true
+    });
 
-    const resolvedRate = await Complaint.countDocuments({
-      ...query,
-      status: 'resolved'
-    }) / totalComplaints * 100;
+    const answeredCount = await Complaint.count({
+      where: {
+        ...query,
+        status: COMPLAINT_STATUS.ANSWERED
+      }
+    });
+
+    const resolvedRate = totalComplaints > 0 ? (answeredCount / totalComplaints * 100).toFixed(2) : 0;
 
     res.json({
       totalComplaints,
       byStatus: byStatus.reduce((acc, curr) => {
-        acc[curr._id] = curr.count;
+        acc[curr.status] = parseInt(curr.count);
         return acc;
       }, {}),
       byCategory: byCategory.reduce((acc, curr) => {
-        acc[curr._id] = curr.count;
+        acc[curr['category.name']] = parseInt(curr.count);
         return acc;
       }, {}),
-      resolvedRate: resolvedRate.toFixed(2)
+      resolvedRate
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get complaint categories
+// @route   GET /api/complaints/categories
+// @access  Public
+exports.getCategories = async (req, res) => {
+  try {
+    const categories = await ComplaintCategory.findAll({
+      where: { isActive: true },
+      order: [['name', 'ASC']]
+    });
+    res.json(categories);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

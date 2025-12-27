@@ -6,10 +6,12 @@ import { AuthProvider } from './context/AuthContext';
 import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Households from './pages/Households';
 import Population from './pages/Population';
 import Complaints from './pages/Complaints';
+import ComplaintForm from './pages/ComplaintForm';
 
 // Create blue theme
 const theme = createTheme({
@@ -89,6 +91,8 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/complaints/new" element={<ComplaintForm />} />
             <Route
               path="/"
               element={
