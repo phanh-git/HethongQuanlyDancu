@@ -25,13 +25,13 @@ fi
 
 echo "✅ npm version: $(npm -v)"
 
-# Check if MongoDB is installed
-if ! command -v mongod &> /dev/null
+# Check if PostgreSQL is installed
+if ! command -v PostgreSQL &> /dev/null
 then
-    echo "⚠️  MongoDB is not installed or not in PATH."
-    echo "   Please make sure MongoDB is installed and running."
+    echo "⚠️  PostgreSQL is not installed or not in PATH."
+    echo "   Please make sure PostgreSQL is installed and running."
 else
-    echo "✅ MongoDB is installed"
+    echo "✅ PostgreSQL is installed"
 fi
 
 echo ""
@@ -67,7 +67,7 @@ echo "Setup Complete!"
 echo "=========================================="
 echo ""
 echo "Next steps:"
-echo "1. Make sure MongoDB is running: mongod"
+echo "1. Make sure PostgreSQL is running: PostgreSQL"
 echo "2. Update backend/.env with your configuration"
 echo "3. Start backend: cd backend && npm run dev"
 echo "4. Start frontend (in new terminal): cd frontend && npm run dev"
