@@ -1,6 +1,14 @@
 const { Complaint, ComplaintCategory, User, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
+// Status constants
+const COMPLAINT_STATUS = {
+  SUBMITTED: 'submitted',
+  ACKNOWLEDGED: 'acknowledged',
+  FORWARDED: 'forwarded',
+  ANSWERED: 'answered'
+};
+
 // @desc    Get all complaints
 // @route   GET /api/complaints
 // @access  Private
@@ -73,9 +81,9 @@ exports.createComplaint = async (req, res) => {
     }
     
     // Set initial status and history
-    complaintData.status = 'submitted';
+    complaintData.status = COMPLAINT_STATUS.SUBMITTED;
     complaintData.statusHistory = [{
-      status: 'submitted',
+      status: COMPLAINT_STATUS.SUBMITTED,
       date: new Date(),
       note: 'Đã phản ánh',
       updatedById: req.user ? req.user.id : null
@@ -120,7 +128,7 @@ exports.updateComplaintStatus = async (req, res) => {
     });
     complaint.statusHistory = history;
 
-    if (status === 'answered') {
+    if (status === COMPLAINT_STATUS.ANSWERED) {
       complaint.resolvedDate = new Date();
       complaint.resolvedById = req.user.id;
       complaint.resolution = resolution;
@@ -272,7 +280,7 @@ exports.getComplaintStats = async (req, res) => {
     const answeredCount = await Complaint.count({
       where: {
         ...query,
-        status: 'answered'
+        status: COMPLAINT_STATUS.ANSWERED
       }
     });
 

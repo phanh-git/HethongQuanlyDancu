@@ -212,7 +212,7 @@ const Register = () => {
               <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                 <ReCAPTCHA
                   ref={recaptchaRef}
-                  sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'}
+                  sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || (import.meta.env.DEV ? '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI' : '')}
                 />
               </Grid>
             </Grid>
