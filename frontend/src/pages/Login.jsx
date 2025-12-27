@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Container,
   Paper,
@@ -99,6 +99,15 @@ const Login = () => {
               {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </Button>
           </form>
+
+          <Box sx={{ mt: 2, textAlign: 'center' }}>
+            <Typography variant="body2">
+              Chưa có tài khoản?{' '}
+              <Link to="/register" style={{ color: '#0066CC', textDecoration: 'none' }}>
+                Đăng ký ngay
+              </Link>
+            </Typography>
+          </Box>
         </Paper>
       </Box>
     </Container>
