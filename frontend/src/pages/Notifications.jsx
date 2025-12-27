@@ -13,32 +13,49 @@ import {
 } from '@mui/material';
 
 const Notifications = () => {
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: 'Lịch họp tổ dân phố tháng 12',
-      message: 'Kính mời các hộ gia đình tham dự cuộc họp tổ dân phố vào 8h ngày 30/12/2024 tại Hội trường tổ dân phố.',
-      date: '2024-12-20',
-      type: 'meeting',
-      isRead: false
-    },
-    {
-      id: 2,
-      title: 'Thông báo thu phí vệ sinh',
-      message: 'Kính mời các hộ gia đình đóng phí vệ sinh quý 4/2024. Hạn chót: 31/12/2024.',
-      date: '2024-12-15',
-      type: 'fee',
-      isRead: true
-    },
-    {
-      id: 3,
-      title: 'Chương trình tết trồng cây',
-      message: 'Tổ dân phố tổ chức chương trình tết trồng cây vào sáng ngày 05/01/2025. Mời các hộ tham gia.',
-      date: '2024-12-10',
-      type: 'event',
-      isRead: true
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    loadNotifications();
+  }, []);
+
+  const loadNotifications = async () => {
+    try {
+      // TODO: Replace with actual API endpoint when backend implements notifications
+      // Example: const response = await api.get('/notifications');
+      // For now, using placeholder data
+      
+      // Placeholder data - in production, fetch from: GET /api/notifications
+      setNotifications([
+        {
+          id: 1,
+          title: 'Lịch họp tổ dân phố tháng 12',
+          message: 'Kính mời các hộ gia đình tham dự cuộc họp tổ dân phố vào 8h ngày 30/12/2024 tại Hội trường tổ dân phố.',
+          date: '2024-12-20',
+          type: 'meeting',
+          isRead: false
+        },
+        {
+          id: 2,
+          title: 'Thông báo thu phí vệ sinh',
+          message: 'Kính mời các hộ gia đình đóng phí vệ sinh quý 4/2024. Hạn chót: 31/12/2024.',
+          date: '2024-12-15',
+          type: 'fee',
+          isRead: true
+        },
+        {
+          id: 3,
+          title: 'Chương trình tết trồng cây',
+          message: 'Tổ dân phố tổ chức chương trình tết trồng cây vào sáng ngày 05/01/2025. Mời các hộ tham gia.',
+          date: '2024-12-10',
+          type: 'event',
+          isRead: true
+        }
+      ]);
+    } catch (error) {
+      console.error('Error loading notifications:', error);
     }
-  ]);
+  };
 
   const getTypeLabel = (type) => {
     const labels = {

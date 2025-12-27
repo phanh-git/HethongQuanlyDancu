@@ -47,29 +47,13 @@ const StaffManagement = () => {
 
   const loadStaff = async () => {
     try {
-      // Get all users with staff roles
-      const response = await api.get('/auth/me');
-      // In a real implementation, we would have a proper endpoint to list all staff
-      // For now, we'll use a mock list
+      // TODO: Replace with actual API endpoint when backend implements staff listing
+      // Example: const response = await api.get('/auth/staff');
+      // For now, this is a placeholder that should be implemented in production
+      
+      // Placeholder data - in production, fetch from: GET /api/auth/staff
       setStaff([
-        {
-          id: 1,
-          username: 'staff01',
-          fullName: 'Nguyễn Văn A',
-          email: 'staff01@example.com',
-          role: 'staff',
-          isActive: true,
-          lastLogin: '2024-12-20'
-        },
-        {
-          id: 2,
-          username: 'deputy01',
-          fullName: 'Trần Thị B',
-          email: 'deputy01@example.com',
-          role: 'deputy_leader',
-          isActive: true,
-          lastLogin: '2024-12-22'
-        }
+        // This mock data will be replaced with actual API call
       ]);
     } catch (error) {
       console.error('Error loading staff:', error);

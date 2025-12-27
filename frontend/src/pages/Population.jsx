@@ -24,6 +24,7 @@ import {
 } from '@mui/material';
 import { Add as AddIcon, Visibility, Edit } from '@mui/icons-material';
 import { populationService } from '../services';
+import { RESIDENCE_COLORS } from '../constants';
 
 const Population = () => {
   const [population, setPopulation] = useState([]);
@@ -68,12 +69,7 @@ const Population = () => {
   };
 
   const getResidenceStatusColor = (status) => {
-    const colors = {
-      permanent: '#4CAF50', // Green
-      temporary: '#FFC107', // Yellow
-      temporarily_absent: 'warning'
-    };
-    return colors[status] || 'default';
+    return RESIDENCE_COLORS[status] || 'default';
   };
 
   return (
@@ -96,17 +92,17 @@ const Population = () => {
         <Box sx={{ mb: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           <Chip 
             label="Thường trú" 
-            sx={{ bgcolor: '#4CAF50', color: 'white' }} 
+            sx={{ bgcolor: RESIDENCE_COLORS.permanent, color: 'white' }} 
             size="small"
           />
           <Chip 
             label="Tạm trú" 
-            sx={{ bgcolor: '#FFC107', color: 'black' }} 
+            sx={{ bgcolor: RESIDENCE_COLORS.temporary, color: 'black' }} 
             size="small"
           />
           <Chip 
             label="Tạm vắng" 
-            color="warning" 
+            sx={{ bgcolor: RESIDENCE_COLORS.temporarily_absent, color: 'white' }} 
             size="small"
           />
         </Box>
@@ -204,10 +200,8 @@ const Population = () => {
                       <Chip
                         label={getResidenceStatusLabel(person.residenceStatus)}
                         sx={{
-                          bgcolor: person.residenceStatus === 'permanent' ? '#4CAF50' : 
-                                   person.residenceStatus === 'temporary' ? '#FFC107' : undefined,
-                          color: person.residenceStatus === 'permanent' ? 'white' : 
-                                 person.residenceStatus === 'temporary' ? 'black' : undefined
+                          bgcolor: RESIDENCE_COLORS[person.residenceStatus],
+                          color: person.residenceStatus === 'temporary' ? 'black' : 'white'
                         }}
                         size="small"
                       />

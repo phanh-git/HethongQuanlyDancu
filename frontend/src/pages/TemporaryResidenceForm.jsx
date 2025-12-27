@@ -16,6 +16,7 @@ import {
 import { Send as SendIcon } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { temporaryResidenceService } from '../services';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../constants';
 
 const TemporaryResidenceForm = () => {
   const { user } = useAuth();
@@ -52,7 +53,7 @@ const TemporaryResidenceForm = () => {
         notes: ''
       });
     } catch (err) {
-      setError(err.response?.data?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+      setError(err.response?.data?.message || ERROR_MESSAGES.GENERIC_ERROR);
     } finally {
       setLoading(false);
     }

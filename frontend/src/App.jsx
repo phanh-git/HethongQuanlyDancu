@@ -18,6 +18,7 @@ import ResidentComplaintForm from './pages/ResidentComplaintForm';
 import TemporaryResidenceForm from './pages/TemporaryResidenceForm';
 import Notifications from './pages/Notifications';
 import StaffManagement from './pages/StaffManagement';
+import { ROLE_GROUPS, getRedirectPath } from './constants';
 
 // Create blue theme
 const theme = createTheme({
@@ -99,11 +100,7 @@ const RoleBasedRoute = ({ children, allowedRoles }) => {
   
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     // Redirect to appropriate home based on role
-    if (user.role === 'resident') {
-      return <Navigate to="/home" replace />;
-    } else {
-      return <Navigate to="/admin/dashboard" replace />;
-    }
+    return <Navigate to={getRedirectPath(user.role)} replace />;
   }
   
   return children;
@@ -122,7 +119,7 @@ function AppRoutes() {
         path="/admin"
         element={
           <PrivateRoute>
-            <RoleBasedRoute allowedRoles={['admin', 'team_leader', 'deputy_leader', 'staff']}>
+            <RoleBasedRoute allowedRoles={ROLE_GROUPS.MANAGEMENT}>
               <AdminLayout />
             </RoleBasedRoute>
           </PrivateRoute>
@@ -138,7 +135,7 @@ function AppRoutes() {
         <Route 
           path="staff" 
           element={
-            <RoleBasedRoute allowedRoles={['admin', 'team_leader']}>
+            <RoleBasedRoute allowedRoles={ROLE_GROUPS.ADMIN_ONLY}>
               <StaffManagement />
             </RoleBasedRoute>
           } 
@@ -150,7 +147,7 @@ function AppRoutes() {
         path="/home"
         element={
           <PrivateRoute>
-            <RoleBasedRoute allowedRoles={['resident']}>
+            <RoleBasedRoute allowedRoles={ROLE_GROUPS.RESIDENTS}>
               <ResidentLayout />
             </RoleBasedRoute>
           </PrivateRoute>
@@ -170,9 +167,7 @@ function AppRoutes() {
         path="/" 
         element={
           user ? (
-            user.role === 'resident' ? 
-              <Navigate to="/home" replace /> : 
-              <Navigate to="/admin/dashboard" replace />
+            <Navigate to={getRedirectPath(user.role)} replace />
           ) : (
             <Navigate to="/login" replace />
           )
