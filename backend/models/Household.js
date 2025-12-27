@@ -3,8 +3,8 @@ const { sequelize } = require('../config/database');
 
 const Household = sequelize.define('Household', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
     primaryKey: true
   },
   householdCode: {
@@ -13,7 +13,7 @@ const Household = sequelize.define('Household', {
     unique: true
   },
   householdHeadId: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     allowNull: false,
     references: {
       model: 'Populations',
@@ -34,7 +34,7 @@ const Household = sequelize.define('Household', {
     defaultValue: 'active'
   },
   createdById: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     references: {
       model: 'Users',
       key: 'id'

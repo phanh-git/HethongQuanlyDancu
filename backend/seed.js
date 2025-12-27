@@ -166,6 +166,7 @@ const seedDatabase = async () => {
 
     // Create household 1
     const household1 = await Household.create({
+      householdCode: 'HK000001',
       householdHeadId: person1.id,
       address: {
         houseNumber: '123',
@@ -231,6 +232,7 @@ const seedDatabase = async () => {
 
     // Create household 2
     const household2 = await Household.create({
+      householdCode: 'HK000002',
       householdHeadId: person4.id,
       address: {
         houseNumber: '456',
