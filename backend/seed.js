@@ -67,7 +67,7 @@ const seedDatabase = async () => {
       citizenIdentificationCard: '012345678901',
       dateOfBirth: '1990-05-10',
       phone: '0901234567',
-      role: 'citizen',
+      role: 'resident',
       isActive: true
     });
 
@@ -79,7 +79,7 @@ const seedDatabase = async () => {
       citizenIdentificationCard: '012345678902',
       dateOfBirth: '1992-08-15',
       phone: '0902345678',
-      role: 'citizen',
+      role: 'resident',
       isActive: true
     });
 
@@ -91,7 +91,7 @@ const seedDatabase = async () => {
       citizenIdentificationCard: '012345678903',
       dateOfBirth: '1988-12-25',
       phone: '0903456789',
-      role: 'citizen',
+      role: 'resident',
       isActive: true
     });
 
@@ -103,11 +103,11 @@ const seedDatabase = async () => {
       citizenIdentificationCard: '012345678904',
       dateOfBirth: '1995-02-14',
       phone: '0904567890',
-      role: 'citizen',
+      role: 'resident',
       isActive: true
     });
 
-    console.log('✓ Created 4 citizen users');
+    console.log('✓ Created 4 resident users');
 
 
     // Create sample population for household 1
@@ -119,7 +119,7 @@ const seedDatabase = async () => {
       idIssueDate: new Date('2015-01-10'),
       idIssuePlace: 'Hà Nội',
       nationality: 'Việt Nam',
-      ethnicity: 'Kinh',
+      ethnicity: 'Kinh',                                    
       occupation: 'Kỹ sư',
       education: 'university',
       relationshipToHead: 'head',

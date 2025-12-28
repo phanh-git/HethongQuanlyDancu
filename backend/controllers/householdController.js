@@ -1,37 +1,56 @@
 const Household = require('../models/Household');
 const Population = require('../models/Population');
-
+const { Op } = require('sequelize');
 // @desc    Get all households
 // @route   GET /api/households
 // @access  Private
+
 exports.getHouseholds = async (req, res) => {
   try {
     const { page = 1, limit = 10, search } = req.query;
-    const query = { status: 'active' };
+    
+    // 1. Khởi tạo điều kiện WHERE
+    const whereConditions = { status: 'active' };
 
+    // 2. Xử lý tìm kiếm (Postgres sử dụng ILIKE để tìm kiếm không phân biệt hoa thường)
     if (search) {
-      query.$or = [
-        { householdCode: { $regex: search, $options: 'i' } },
-        { 'address.houseNumber': { $regex: search, $options: 'i' } }
+      whereConditions[Op.or] = [
+        { householdCode: { [Op.iLike]: `%${search}%` } },
+        { 'address': { [Op.iLike]: `%${search}%` } } // Giả định address là cột text trong Postgres
       ];
     }
 
-    const households = await Household.find(query)
-      .populate('householdHead', 'fullName dateOfBirth idNumber')
-      .populate('members', 'fullName relationshipToHead')
-      .sort({ householdCode: 1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+    const offset = (parseInt(page) - 1) * parseInt(limit);
 
-    const count = await Household.countDocuments(query);
+    // 3. Truy vấn tìm và đếm đồng thời
+    const { count, rows } = await Household.findAndCountAll({
+      where: whereConditions,
+      include: [
+        {
+          model: Population,
+          as: 'householdHead', // Alias phải khớp với định nghĩa Association
+          attributes: ['fullName', 'dateOfBirth', 'idNumber']
+        },
+        {
+          model: Population,
+          as: 'members',
+          attributes: ['fullName', 'relationshipToHead']
+        }
+      ],
+      order: [['householdCode', 'ASC']],
+      limit: parseInt(limit),
+      offset: offset,
+      distinct: true // Quan trọng: Tránh đếm sai khi dùng JOIN (Include)
+    });
 
     res.json({
-      households,
+      households: rows,
       totalPages: Math.ceil(count / limit),
-      currentPage: page,
+      currentPage: parseInt(page),
       total: count
     });
   } catch (error) {
+    console.error("Lỗi getHouseholds:", error);
     res.status(500).json({ message: error.message });
   }
 };

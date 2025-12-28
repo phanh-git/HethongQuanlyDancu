@@ -1,9 +1,10 @@
 const Population = require('../models/Population');
 const Household = require('../models/Household');
-
+const { Op } = require('sequelize');
 // @desc    Get all population
 // @route   GET /api/population
 // @access  Private
+
 exports.getPopulation = async (req, res) => {
   try {
     const { 
@@ -14,42 +15,45 @@ exports.getPopulation = async (req, res) => {
       ageCategory,
       gender 
     } = req.query;
-    
-    const query = { isDead: false, hasMovedOut: false };
 
+    const offset = (page - 1) * limit;
+
+    // 1. Xây dựng điều kiện WHERE
+    const whereConditions = {
+      isDead: false,
+      hasMovedOut: false
+    };
+
+    // Tìm kiếm (ILIKE cho Postgres để không phân biệt hoa thường)
     if (search) {
-      query.$or = [
-        { fullName: { $regex: search, $options: 'i' } },
-        { idNumber: { $regex: search, $options: 'i' } }
+      whereConditions[Op.or] = [
+        { fullName: { [Op.iLike]: `%${search}%` } },
+        { idNumber: { [Op.iLike]: `%${search}%` } }
       ];
     }
 
-    if (residenceStatus) {
-      query.residenceStatus = residenceStatus;
-    }
+    // Các bộ lọc khác
+    if (residenceStatus) whereConditions.residenceStatus = residenceStatus;
+    if (gender) whereConditions.gender = gender;
+    if (ageCategory) whereConditions.ageCategory = ageCategory;
 
-    if (gender) {
-      query.gender = gender;
-    }
-
-    const population = await Population.find(query)
-      .populate('household', 'householdCode address')
-      .sort({ fullName: 1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    // Filter by age category if specified
-    let filteredPopulation = population;
-    if (ageCategory) {
-      filteredPopulation = population.filter(person => person.ageCategory === ageCategory);
-    }
-
-    const count = await Population.countDocuments(query);
+    // 2. Truy vấn Database
+    const { count, rows } = await Population.findAndCountAll({
+      where: whereConditions,
+      include: [{
+        model: Household,
+        as: 'household', // Phải khớp với alias trong định nghĩa association
+        attributes: ['householdCode', 'address']
+      }],
+      order: [['fullName', 'ASC']],
+      limit: parseInt(limit),
+      offset: parseInt(offset)
+    });
 
     res.json({
-      population: filteredPopulation,
+      population: rows,
       totalPages: Math.ceil(count / limit),
-      currentPage: page,
+      currentPage: parseInt(page),
       total: count
     });
   } catch (error) {

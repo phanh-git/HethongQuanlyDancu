@@ -15,11 +15,11 @@ const register = async (req, res) => {
   try {
     const { username, password, fullName, email, phone, citizenIdentificationCard } = req.body;
 
-    // Kiểm tra CCCD có trong danh sách dân cư không
-    const citizen = await Population.findOne({ where: { idNumber: citizenIdentificationCard } });
-    if (!citizen) {
-      return res.status(400).json({ message: 'Số CCCD không tồn tại trong hệ thống dân cư.' });
-    }
+    // // Kiểm tra CCCD có trong danh sách dân cư không
+    // const citizen = await Population.findOne({ where: { idNumber: citizenIdentificationCard } });
+    // if (!citizen) {
+    //   return res.status(400).json({ message: 'Số CCCD không tồn tại trong hệ thống dân cư.' });
+    // }
 
     // Check trùng
     const userExists = await User.findOne({ 
